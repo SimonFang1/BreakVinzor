@@ -1,7 +1,8 @@
 #include "KeybdSimulator.h"
-#include <cstring>	//strerror
+#include <string.h>	//strerror
 #include <sstream>
 #include <vector>
+#include <time.h>
 
 
 using std::endl;
@@ -14,11 +15,10 @@ KeybdSimulator::KeybdSimulator(std::istream &is, std::ostream &os) :is(is), os(o
 	quit_status = false;
 	is_htf_file = false;
 	is_busy = false;
-	//pagesize = 1024;
+	pagesize = 1024;
 	bin_file_path = "origin";
 	htf_file_path = "HexTransitFormat.txt";
 	tmp_file = nullptr;
-
 }
 
 KeybdSimulator::~KeybdSimulator() {
@@ -29,7 +29,7 @@ KeybdSimulator::~KeybdSimulator() {
 void KeybdSimulator::welcome() {
 	os << "id name Keyboard Simulator" << endl
 		<< "id version 3.1" << endl
-		<< "id copyright 2016 - 2017 SimonFang" << endl
+		<< "id copyright 2016-2017 https://github.com/SimonFang1/BreakVinzor" << endl
 		<< "id author Simon Fang" << endl
 		<< "id user Everyone" << endl
 		//<< "option pagesize default 1024" << endl
@@ -46,7 +46,7 @@ void KeybdSimulator::welcome() {
 	}
 
 	os << "ready" << endl;
-	os << "enter \"help\" to get help information" << endl;
+	os << "enter \"h[elp]\" to get help information" << endl;
 
 }
 
@@ -60,6 +60,9 @@ void KeybdSimulator::exec() {
 		getline(is, buffer);
 		ss << buffer;
 		ss >> cmd;
+		if (ss.peek() == ' ') {
+			ss.ignore();
+		}
 		getline(ss, args);
 		int cmd_res = parse_cmd(cmd.c_str(), allcmds, N_CMDS);
 		if (cmd_res >= 0) {
@@ -100,6 +103,12 @@ int KeybdSimulator::parse_cmd(const char *cmd, const char* target_cmd[], unsigne
 		return -1;
 	}
 	if (valid.size() > 1) {
+		for (int ii = 0; ii < valid.size(); ii++) {
+			if (target_cmd[valid[ii]] == cmd) {
+				return valid[ii];
+			}
+		}
+		if (strcmp(cmd, "") == 0) return -2;
 		os << "ambiguous command: " << cmd << endl;
 		for (int j = 0; j < valid.size(); j++) {
 			os << target_cmd[valid[j]] << '\t';
@@ -111,14 +120,56 @@ int KeybdSimulator::parse_cmd(const char *cmd, const char* target_cmd[], unsigne
 }
 
 void KeybdSimulator::help_func(const char *args) {
-	os << "help: " << args << endl;
-	string fuck = "I fuck you";
-	Sleep(2000);
-	os << '\a';
-	driver->SendKey('a');
-	//for (int i = 0; i < fuck.size(); i++) {
-	//	driver->SendKey(fuck[i]);
-	//}
+	char *line = "------------------------------";
+	char *dline = "===============================";
+	os << endl << dline << endl;
+	//os << "help page: " << endl;
+	os << "this program has been published on github." << endl;
+	os << "https://github.com/SimonFang1/BreakVinzor" << endl;
+	os << "total commands;\n";
+	for (int i = 0; i < N_CMDS; i++) {
+		os << allcmds[i] << '\t';
+	}
+	os << endl;
+	
+	os << endl << "encode:" << endl;
+	os << line << endl;
+	
+	os << "this commands needs 0-2 arguments, you are required to enter as following format" << endl;
+	os << "\te[ncode] ([source_binary_file] [hex_character_text_file])" << endl;
+	os << "if only \"e\" is entered, it is equivalent to \"encode origin HexTransitFormat.txt\"" << endl;
+	os << line << endl;
+
+	os << endl << "decode:" << endl;
+	os << line << endl;
+	os << "this commands needs 0-2 arguments, you are required to enter as following format" << endl;
+	os << "\td[ecode] ([source_binary_file] [hex_character_text_file])" << endl;
+	os << "if only \"d\" is entered, it is equivalent to \"decode origin HexTransitFormat.txt\"" << endl;
+
+	os << endl << "go" << endl;
+	os << line << endl;
+	os << "this commands needs none or 1 argument, you are required to enter as following format" << endl;
+	os << "\tg[o] ([hex_character_text_file])" << endl;
+	os << "if only \"g\" is entered, it is equivalent to \"go HexTransitFormat.txt\"" << endl;
+	os << "if any commands or strings are recieved while typing, the typing task will be aborted" << endl;
+
+	os << endl << "setoption" << endl;
+	os << line << endl;
+	os << "you are required to enter as following format" << endl;
+	os << "\tse[toption] <-b bin_path> <-h htf_path>" << endl;
+
+	os << endl << "showoption" << endl;
+	os << line << endl;
+	os << "this commands needs none arguments, enter to show options" << endl;
+	os << "\tsh[owoption]" << endl;
+
+
+	os << endl << "quit" << endl;
+	os << line << endl;
+	os << "this commands needs none arguments, enter to quit" << endl;
+	os << "\tq[uit]" << endl;
+
+	os << dline << endl << endl;
 }
 
 void KeybdSimulator::setoption_func(const char *args) {
@@ -135,7 +186,7 @@ void KeybdSimulator::setoption_func(const char *args) {
 		} else if (cmd_res == 1) {
 			ss >> htf_file_path;
 			os << "set hex transformation filepath to " << htf_file_path << endl;
-		} else if (cmd_res == 2) { // discard
+		} else if (cmd_res == 2) {
 			ss >> pagesize;
 			os << "set pagesize to " << pagesize << endl;
 		} else if (cmd_res == 3) { // discard
@@ -197,7 +248,7 @@ void KeybdSimulator::encode_func(const char *args) {
 	}
 
 	int res;
-	STARTUPINFO si = { 0 };
+	STARTUPINFOA si = { 0 };
 	PROCESS_INFORMATION pi = { 0 };
 	si.cb = sizeof(si);
 	char cmdline[256];
@@ -240,7 +291,7 @@ void KeybdSimulator::decode_func(const char *args) {
 	}
 
 	int res;
-	STARTUPINFO si = { 0 };
+	STARTUPINFOA si = { 0 };
 	PROCESS_INFORMATION pi = { 0 };
 	si.cb = sizeof(si);
 	char cmdline[256];
@@ -278,13 +329,15 @@ DWORD WINAPI KeybdSimulator::typing(LPVOID lpParameter) {
 	KeybdSimulator *thisKeybdSimulator = (KeybdSimulator *)lpParameter;
 	thisKeybdSimulator->is_busy = true;
 	char hexch;
+	clock_t s_time = clock();
 	while ((hexch = fgetc(thisKeybdSimulator->tmp_file)) != EOF/*!feof(thisKeybdSimulator->tmp_file)*/) {
 		thisKeybdSimulator->driver->SendKey(hexch);
-		Sleep(1);
 	}
+	clock_t e_time = clock();
 	fclose(thisKeybdSimulator->tmp_file);
 	thisKeybdSimulator->tmp_file = nullptr;
 	thisKeybdSimulator->is_busy = false;
-	thisKeybdSimulator->os << "typing task completed" << endl;
+	thisKeybdSimulator->os << "\atyping task completed" << endl
+		<< "time cost: " << ((e_time - s_time) * 1.0 / CLOCKS_PER_SEC) << endl;
 	return 0;
 }

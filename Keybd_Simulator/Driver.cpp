@@ -1,4 +1,5 @@
 #include "Driver.h"
+#include <stdio.h>
 
 #pragma comment(lib, "WinRing0.lib")
 
@@ -32,13 +33,25 @@ int Driver::getErrorCode() {
 
 void Driver::KBCwait4IBE() {
 	BYTE ch;
-	// ×ÔÐýËø
-	do {
-		ch = ReadIoPortByte(P_KEY_CMD);//¶ÁÈ¡¼üÅÌµÄÃüÁî¶Ë¿Ú£¬µÃ³öch
-	} while ((ch & 0x2));//bit1ÊÇ1µÄ»°£¬ËµÃ÷ÊäÈë»º³åÆ÷ÒÑÂú
+	//// è‡ªæ—‹é”
+	//do {
+	//	ch = ReadIoPortByte(P_KEY_CMD);//è¯»å–é”®ç›˜çš„å‘½ä»¤ç«¯å£ï¼Œå¾—å‡ºch
+	//} while (ch & 0x2);//bit1æ˜¯1çš„è¯ï¼Œè¯´æ˜Žè¾“å…¥ç¼“å†²å™¨å·²æ»¡
+
+	//æ”¾å¼ƒæ—¶é—´ç‰‡,ä¼‘çœ 1æ¯«ç§’
+	while (true) {
+		ch = ReadIoPortByte(P_KEY_CMD);//è¯»å–é”®ç›˜çš„å‘½ä»¤ç«¯å£ï¼Œå¾—å‡ºch
+		if (ch & 0x2) {
+			Sleep(1);
+			//printf("f");
+		} else {
+			//printf(" ");
+			break;
+		}
+	}
 }
 
-//°´ÏÂ
+//æŒ‰ä¸‹
 void Driver::MakeKeyDown(DWORD VirtualKey) {
 	DWORD ScanCode = MapVirtualKey((BYTE)VirtualKey, 0);
 	KBCwait4IBE();
@@ -47,27 +60,34 @@ void Driver::MakeKeyDown(DWORD VirtualKey) {
 	WriteIoPortByte(P_KEY_DAT, ScanCode);
 }
 
-//µ¯Æð
+//å¼¹èµ·
 void Driver::MakeKeyUp(DWORD VirtualKey) {
 	DWORD ScanCode = MapVirtualKey(VirtualKey, 0);
 	KBCwait4IBE();
 	WriteIoPortByte(P_KEY_CMD, 0xd2);
 	KBCwait4IBE();
-	WriteIoPortByte(P_KEY_CMD, ScanCode | 0x80);
+	WriteIoPortByte(P_KEY_DAT, ScanCode | 0x80);
 }
 
 void Driver::SendKey(const char ch) {
 	DWORD sc, shift;
 	unsigned char vkey;
 	sc = OemKeyScan(ch);
+	//static int count = 0;
 	shift = sc >> 16;
 	vkey = MapVirtualKey(sc & 0xffff, 1);
 	if (shift)
 		MakeKeyDown(VK_SHIFT);
 	MakeKeyDown(vkey);
 	MakeKeyUp(vkey);
-	if (shift)
+	if (shift) {
 		MakeKeyUp(VK_SHIFT);
+	}
+	//count++;
+	//if (count == 20) {
+	//	Sleep(2);
+	//	count = 0;
+	//}	
 }
 
 void Driver::SendString(const char *str) {

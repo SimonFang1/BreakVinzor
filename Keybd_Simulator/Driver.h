@@ -17,7 +17,7 @@ public:
 	void MakeKeyUp(DWORD VirtualKey);
 	void SendKey(const char ch);
 	void SendString(const char *str);
-	void KBCwait4IBE();	//µÈ´ý»º³åÇøÎª¿Õ
+	void KBCwait4IBE();	//ç­‰å¾…è¾“å…¥ç¼“å†²åŒºä¸ºç©º
 	bool good();
 	int getErrorCode();
 private:
