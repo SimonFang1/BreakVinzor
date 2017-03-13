@@ -4,7 +4,7 @@
 This program can simulate the behaviour of the PS2 keyboard by manipulating the I/O port on Windows Operation System.
 My work is based on WinRing0, a powerful hardware access library for Windows.
 
-This program alse support typing a file to a remote desktop where network access is restricted.
+This program also support typing a file to a remote desktop where network access is restricted.
 (You know what I mean.) You can doing as follows:
 
 1. **Encoding the file you want to transit.** That is, convert the binary file to a text file.
@@ -13,9 +13,9 @@ So, each byte will be converted into 2 ascii characters([0-9a-f]).
 
 2. **Typing the hex ascii characters to the remote desktop.** Opening a blank file and save it after typing.
 
-3. **Typing the source code(decoder.c) to the remote desktop** Compilde the source code.
+3. **Typing the source code(decoder.c) to the remote desktop.** Compilde the source code.
 
-4. **Decode the hex ascii characters to get original file.**
+4. **Decoding the hex ascii characters to get original file.**
 
 
 ##Direction
