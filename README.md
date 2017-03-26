@@ -11,7 +11,7 @@ This program also support typing a file to a remote desktop where network access
 Regard each byte as an unsigned integer and represent it to hexadecimal format.
 So, each byte will be converted into 2 ascii characters([0-9a-f]).
 
-2. **Typing the hex ascii characters to the remote desktop.** Prepareing a blank text file and save it after receiving charachters.
+2. **Typing the hex ascii characters to the remote desktop.** Prepareing a blank text file and save it after receiving characters.
 
 3. **Typing the source code(decoder.c) to the remote desktop.** Compile the source code.
 
